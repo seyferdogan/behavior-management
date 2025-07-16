@@ -204,13 +204,11 @@ const TeacherView = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select reporting teacher...</option>
-                  <option value="Ms. Jennifer Brown">Ms. Jennifer Brown</option>
-                  <option value="Mr. Michael Davis">Mr. Michael Davis</option>
-                  <option value="Mrs. Sarah Wilson">Mrs. Sarah Wilson</option>
-                  <option value="Dr. Robert Johnson">Dr. Robert Johnson</option>
-                  <option value="Ms. Lisa Anderson">Ms. Lisa Anderson</option>
-                  <option value="Mr. David Thompson">Mr. David Thompson</option>
-                  <option value="Mrs. Emily White">Mrs. Emily White</option>
+                  {staff.map((teacher, index) => (
+                    <option key={index} value={teacher.name}>
+                      {teacher.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
