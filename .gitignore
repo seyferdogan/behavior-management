@@ -29,8 +29,10 @@ behavior-management-backend/prisma/dev.db
 # Build outputs
 build/
 dist/
-*/build/
-*/dist/
+behavior-management-backend/build/
+behavior-management-backend/dist/
+
+# Allow frontend build for GitHub Pages - needed for deployment
 
 # IDE and system files
 .vscode/
