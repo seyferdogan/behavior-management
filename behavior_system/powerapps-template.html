@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taqwa School - Behavior Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .school-name {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .school-motto {
+            font-size: 18px;
+            opacity: 0.9;
+            letter-spacing: 2px;
+            font-weight: 300;
+        }
+
+        .arabic-text {
+            font-size: 24px;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .main-content {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .welcome-section {
+            margin-bottom: 40px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            color: #2E7D32;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .action-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .main-button {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+        }
+
+        .main-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(76, 175, 80, 0.4);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .quick-action {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .quick-action:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .quick-action-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .quick-action-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .quick-action-desc {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2E7D32;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            animation: fadeIn 0.6s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <div class="logo-section">
+                <div class="logo-placeholder">
+                    <div style="font-size: 40px;">📚</div>
+                </div>
+                <div>
+                    <div class="arabic-text">تقوى</div>
+                    <div class="school-name">TAQWA SCHOOL</div>
+                </div>
+            </div>
+            <div class="school-motto">LEARN • EXCEL • LEAD</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="welcome-section">
+                <h2 class="welcome-title">Behavior Management System</h2>
+                <p class="welcome-text">
+                    Welcome to our comprehensive student behavior tracking and analytics platform. 
+                    Monitor student progress, generate reports, and maintain a positive learning environment.
+                </p>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="stats-section">
+                <div class="stat-item">
+                    <div class="stat-number">93+</div>
+                    <div class="stat-label">Students Tracked</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Staff Members</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">156+</div>
+                    <div class="stat-label">Incident Records</div>
+                </div>
+            </div>
+
+            <!-- Action Section -->
+            <div class="action-section">
+                <a href="https://seyferdogan.github.io/behavior-management" 
+                   target="_blank" 
+                   class="main-button">
+                    🚀 Open Behavior Management System
+                </a>
+                
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <div class="quick-action" onclick="window.open('https://seyferdogan.github.io/behavior-management', '_blank')">
+                        <div class="quick-action-icon">📝</div>
+                        <div class="quick-action-title">Report Incident</div>
+                        <div class="quick-action-desc">Quickly log student incidents</div>
+                    </div>
+                    
+                    <div class="quick-action" onclick="window.open('https://seyferdogan.github.io/behavior-management', '_blank')">
+                        <div class="quick-action-icon">📊</div>
+                        <div class="quick-action-title">View Analytics</div>
+                        <div class="quick-action-desc">Student behavior insights</div>
+                    </div>
+                    
+                    <div class="quick-action" onclick="window.open('https://seyferdogan.github.io/behavior-management', '_blank')">
+                        <div class="quick-action-icon">👥</div>
+                        <div class="quick-action-title">Manage Students</div>
+                        <div class="quick-action-desc">Student administration</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Taqwa School - Behavior Management System</p>
+            <p>Powered by Modern Educational Technology</p>
+        </div>
+    </div>
+</body>
+</html> 
