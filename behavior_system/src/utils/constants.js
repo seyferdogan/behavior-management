@@ -172,27 +172,27 @@ export const INITIAL_STUDENTS = [
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 export const INITIAL_STAFF = [
-  "Ms. Aaliyah Ahmed",
-  "Mr. Benjamin Clarke", 
-  "Mrs. Catherine Davis",
-  "Dr. David Foster",
-  "Ms. Elena Rodriguez",
-  "Mr. Frank Thompson",
-  "Mrs. Grace Wilson",
-  "Ms. Hannah Martinez",
-  "Mr. Ian Kowalski",
-  "Mrs. Jennifer Brown",
-  "Ms. Katherine Lee",
-  "Mr. Lucas Anderson",
-  "Mrs. Maria Gonzalez",
-  "Ms. Nicole Johnson",
-  "Mr. Oliver Smith",
-  "Mrs. Patricia Taylor",
-  "Ms. Quinn Roberts",
-  "Mr. Robert Miller",
-  "Mrs. Samantha Garcia",
-  "Ms. Teresa White"
-].sort();
+  { name: "Ms. Aaliyah Ahmed" },
+  { name: "Mr. Benjamin Clarke" }, 
+  { name: "Mrs. Catherine Davis" },
+  { name: "Dr. David Foster" },
+  { name: "Ms. Elena Rodriguez" },
+  { name: "Mr. Frank Thompson" },
+  { name: "Mrs. Grace Wilson" },
+  { name: "Ms. Hannah Martinez" },
+  { name: "Mr. Ian Kowalski" },
+  { name: "Mrs. Jennifer Brown" },
+  { name: "Ms. Katherine Lee" },
+  { name: "Mr. Lucas Anderson" },
+  { name: "Mrs. Maria Gonzalez" },
+  { name: "Ms. Nicole Johnson" },
+  { name: "Mr. Oliver Smith" },
+  { name: "Mrs. Patricia Taylor" },
+  { name: "Ms. Quinn Roberts" },
+  { name: "Mr. Robert Miller" },
+  { name: "Mrs. Samantha Garcia" },
+  { name: "Ms. Teresa White" }
+].sort((a, b) => a.name.localeCompare(b.name));
 
 export const INITIAL_INCIDENTS = [
   {
