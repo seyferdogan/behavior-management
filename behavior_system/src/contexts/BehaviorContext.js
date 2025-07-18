@@ -3,7 +3,10 @@ import {
   INCIDENT_POINTS, 
   INITIAL_EMAIL_SETTINGS,
   INITIAL_FORM_DATA,
-  ZONE_THRESHOLDS
+  ZONE_THRESHOLDS,
+  INITIAL_STUDENTS,
+  INITIAL_STAFF,
+  INITIAL_INCIDENTS
 } from '../utils/constants';
 import apiService from '../utils/api';
 
@@ -94,15 +97,16 @@ export const BehaviorProvider = ({ children }) => {
         
       } catch (error) {
         console.error('❌ Error loading initial data:', error);
+        console.log('🔄 Using fallback mock data for demo purposes');
         setApiError(error.message);
         setIsLoadingStudents(false);
         setIsLoadingIncidents(false);
         setIsLoadingStaff(false);
         
-        // Fallback to empty arrays instead of mock data
-        setStudents([]);
-        setIncidents([]);
-        setStaff([]);
+        // Fallback to mock data when API is unavailable (e.g., on GitHub Pages)
+        setStudents(INITIAL_STUDENTS);
+        setIncidents(INITIAL_INCIDENTS);
+        setStaff(INITIAL_STAFF);
       }
     };
 
