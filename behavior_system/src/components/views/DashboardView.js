@@ -28,8 +28,8 @@ const DashboardView = () => {
 
   const getStaffReportCounts = () => {
     return staff.map(member => ({
-      name: member,
-      reports: incidents.filter(incident => incident.staffMember === member).length
+      name: member.name,
+      reports: incidents.filter(incident => incident.staffMember === member.name).length
     })).sort((a, b) => b.reports - a.reports);
   };
 
