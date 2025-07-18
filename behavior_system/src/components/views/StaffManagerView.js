@@ -16,22 +16,22 @@ const StaffManagerView = () => {
 
   const handleAddStaff = (e) => {
     e.preventDefault();
-    if (newStaffName.trim() && !staff.includes(newStaffName.trim())) {
-      setStaff([...staff, newStaffName.trim()]);
+    if (newStaffName.trim() && !staff.find(member => member.name === newStaffName.trim())) {
+      setStaff([...staff, { name: newStaffName.trim() }]);
       setNewStaffName('');
     }
   };
 
   const handleRemoveStaff = (staffToRemove) => {
-    setStaff(staff.filter(member => member !== staffToRemove));
+    setStaff(staff.filter(member => member.name !== staffToRemove.name));
   };
 
   const getStaffReportCount = (staffMember) => {
-    return incidents.filter(incident => incident.staffMember === staffMember).length;
+    return incidents.filter(incident => incident.staffMember === staffMember.name).length;
   };
 
   const filteredStaff = staff.filter(member =>
-    member.toLowerCase().includes(searchTerm.toLowerCase())
+    member.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -108,7 +108,7 @@ const StaffManagerView = () => {
                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
               >
                 <div className="flex items-center space-x-4">
-                  <span className="font-medium text-gray-900">{member}</span>
+                  <span className="font-medium text-gray-900">{member.name}</span>
                   <span className="text-sm text-gray-600">
                     {reportCount} {reportCount === 1 ? 'report' : 'reports'} submitted
                   </span>
