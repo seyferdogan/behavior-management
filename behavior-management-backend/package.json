@@ -7,17 +7,30 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
+    "db:setup": "node scripts/db-setup.js",
+    "db:migrate": "node scripts/db-setup.js migrate",
+    "db:create": "node scripts/db-setup.js create",
+    "db:reset": "node scripts/db-setup.js reset",
+    "db:seed": "node prisma/seed.js",
+    "db:status": "node scripts/db-setup.js status",
+    "db:backup": "node -e \"require('./src/utils/database').backupDatabase()\"",
+    "db:health": "node -e \"require('./src/utils/database').getDatabaseHealth().then(console.log)\"",
     "db:studio": "prisma studio",
-    "db:seed": "node prisma/seed.js"
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
   },
-  "keywords": ["school", "behavior", "management", "education", "api"],
+  "keywords": [
+    "school",
+    "behavior",
+    "management",
+    "education",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@types/pg": "^8.15.4",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -26,7 +39,8 @@
     "helmet": "^8.0.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.9",

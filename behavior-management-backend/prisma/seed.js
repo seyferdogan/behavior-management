@@ -250,9 +250,14 @@ async function main() {
   console.log('🌱 Seeding database...');
 
   try {
-    // Create a default school
-    const school = await prisma.school.create({
-      data: {
+    // Create or update a default school
+    const school = await prisma.school.upsert({
+      where: { domain: 'demo.school.edu' },
+      update: {
+        name: 'Demo School',
+        isActive: true
+      },
+      create: {
         name: 'Demo School',
         domain: 'demo.school.edu'
       }

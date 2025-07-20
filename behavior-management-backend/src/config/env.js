@@ -29,7 +29,22 @@ const optionalEnvVarsWithDefaults = {
   DEFAULT_ACADEMIC_YEAR: '2024-2025',
   ENABLE_EMAIL_NOTIFICATIONS: 'false',
   ENABLE_ANALYTICS: 'true',
-  ENABLE_BULK_UPLOAD: 'true'
+  ENABLE_BULK_UPLOAD: 'true',
+  
+  // PostgreSQL Configuration
+  DB_TYPE: 'sqlite', // sqlite | postgresql
+  DB_HOST: 'localhost',
+  DB_PORT: '5432',
+  DB_USER: 'postgres',
+  DB_PASSWORD: '',
+  DB_NAME: 'behavior_management',
+  DB_SCHEMA: 'public',
+  DB_SSL: 'false',
+  DB_POOL_MIN: '2',
+  DB_POOL_MAX: '10',
+  DB_TIMEOUT: '30000',
+  DB_BACKUP_ENABLED: 'true',
+  DB_BACKUP_SCHEDULE: '0 2 * * *' // Daily at 2 AM
 };
 
 /**
@@ -67,13 +82,36 @@ function validateEnvironment() {
   }
 
   // Validate numeric values
-  const numericVars = ['BCRYPT_ROUNDS', 'RATE_LIMIT_WINDOW_MS', 'RATE_LIMIT_MAX_REQUESTS', 'MAX_FILE_SIZE'];
+  const numericVars = ['BCRYPT_ROUNDS', 'RATE_LIMIT_WINDOW_MS', 'RATE_LIMIT_MAX_REQUESTS', 'MAX_FILE_SIZE', 'DB_PORT', 'DB_POOL_MIN', 'DB_POOL_MAX', 'DB_TIMEOUT'];
   numericVars.forEach(varName => {
     const value = process.env[varName] || optionalEnvVarsWithDefaults[varName];
     if (isNaN(parseInt(value))) {
       errors.push(`${varName} must be a valid number`);
     }
   });
+
+  // Validate DB_TYPE
+  const dbType = getEnvVar('DB_TYPE');
+  if (!['sqlite', 'postgresql'].includes(dbType)) {
+    errors.push('DB_TYPE must be either "sqlite" or "postgresql"');
+  }
+
+  // Validate PostgreSQL requirements in production
+  if (nodeEnv === 'production' && dbType === 'postgresql') {
+    const requiredPostgresVars = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
+    requiredPostgresVars.forEach(varName => {
+      if (!process.env[varName]) {
+        errors.push(`${varName} is required for PostgreSQL in production`);
+      }
+    });
+  }
+
+  // Validate pool settings
+  const poolMin = parseInt(getEnvVar('DB_POOL_MIN'));
+  const poolMax = parseInt(getEnvVar('DB_POOL_MAX'));
+  if (poolMin >= poolMax) {
+    errors.push('DB_POOL_MIN must be less than DB_POOL_MAX');
+  }
 
   if (errors.length > 0) {
     console.error('❌ Environment configuration errors:');
@@ -131,6 +169,19 @@ const config = {
   
   // Database
   DATABASE_URL: getEnvVar('DATABASE_URL'),
+  DB_TYPE: getEnvVar('DB_TYPE'),
+  DB_HOST: getEnvVar('DB_HOST'),
+  DB_PORT: getNumericEnvVar('DB_PORT'),
+  DB_USER: getEnvVar('DB_USER'),
+  DB_PASSWORD: getEnvVar('DB_PASSWORD'),
+  DB_NAME: getEnvVar('DB_NAME'),
+  DB_SCHEMA: getEnvVar('DB_SCHEMA'),
+  DB_SSL: getBooleanEnvVar('DB_SSL'),
+  DB_POOL_MIN: getNumericEnvVar('DB_POOL_MIN'),
+  DB_POOL_MAX: getNumericEnvVar('DB_POOL_MAX'),
+  DB_TIMEOUT: getNumericEnvVar('DB_TIMEOUT'),
+  DB_BACKUP_ENABLED: getBooleanEnvVar('DB_BACKUP_ENABLED'),
+  DB_BACKUP_SCHEDULE: getEnvVar('DB_BACKUP_SCHEDULE'),
   
   // Authentication & Security
   JWT_SECRET: getEnvVar('JWT_SECRET'),
@@ -171,12 +222,62 @@ const config = {
   }
 };
 
+/**
+ * Generate PostgreSQL connection URL from individual components
+ */
+function generatePostgreSQLUrl() {
+  const { DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_SSL, DB_SCHEMA } = config;
+  
+  let url = `postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`;
+  
+  const params = [];
+  if (DB_SSL) {
+    params.push('sslmode=require');
+  }
+  if (DB_SCHEMA && DB_SCHEMA !== 'public') {
+    params.push(`schema=${DB_SCHEMA}`);
+  }
+  
+  if (params.length > 0) {
+    url += `?${params.join('&')}`;
+  }
+  
+  return url;
+}
+
+/**
+ * Get the appropriate database URL based on DB_TYPE
+ */
+function getDatabaseUrl() {
+  if (config.DB_TYPE === 'postgresql') {
+    return generatePostgreSQLUrl();
+  }
+  return config.DATABASE_URL; // SQLite fallback
+}
+
+// Override DATABASE_URL with generated PostgreSQL URL if needed
+if (config.DB_TYPE === 'postgresql') {
+  config.DATABASE_URL = getDatabaseUrl();
+}
+
 // Log configuration in development
 if (config.IS_DEVELOPMENT) {
   console.log('🔧 Environment Configuration:');
   console.log(`  - NODE_ENV: ${config.NODE_ENV}`);
   console.log(`  - PORT: ${config.PORT}`);
-  console.log(`  - DATABASE_URL: ${config.DATABASE_URL}`);
+  console.log(`  - DB_TYPE: ${config.DB_TYPE}`);
+  
+  if (config.DB_TYPE === 'postgresql') {
+    console.log(`  - DB_HOST: ${config.DB_HOST}:${config.DB_PORT}`);
+    console.log(`  - DB_NAME: ${config.DB_NAME}`);
+    console.log(`  - DB_USER: ${config.DB_USER}`);
+    console.log(`  - DB_PASSWORD: ${config.DB_PASSWORD ? '***SET***' : '❌ NOT SET'}`);
+    console.log(`  - DB_POOL: ${config.DB_POOL_MIN}-${config.DB_POOL_MAX} connections`);
+    console.log(`  - DB_SSL: ${config.DB_SSL}`);
+  } else {
+    console.log(`  - DATABASE_URL: ${config.DATABASE_URL}`);
+  }
+  
   console.log(`  - JWT_SECRET: ${config.JWT_SECRET ? '***SET***' : '❌ NOT SET'}`);
   console.log(`  - FRONTEND_URL: ${config.FRONTEND_URL}`);
   console.log(`  - Feature Flags: Analytics(${config.ENABLE_ANALYTICS}), Email(${config.ENABLE_EMAIL_NOTIFICATIONS}), Upload(${config.ENABLE_BULK_UPLOAD})`);
