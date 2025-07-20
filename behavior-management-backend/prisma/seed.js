@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { hashPassword } = require('../src/utils/auth');
 
 const prisma = new PrismaClient();
 
@@ -259,7 +260,8 @@ async function main() {
 
     console.log('✅ School created:', school.name);
 
-    // Create admin user
+    // Create admin user with proper password hashing
+    const hashedAdminPassword = await hashPassword('admin123'); // Default password for demo
     const adminUser = await prisma.user.create({
       data: {
         email: 'admin@demo.school.edu',
@@ -267,13 +269,15 @@ async function main() {
         lastName: 'Administrator',
         role: 'ADMIN',
         schoolId: school.id,
-        password: '$2a$10$dummy.hash.for.demo' // In real app, hash the password
+        password: hashedAdminPassword,
+        emailVerified: true
       }
     });
 
-    console.log('✅ Admin user created:', adminUser.email);
+    console.log('✅ Admin user created:', adminUser.email, '(password: admin123)');
 
-    // Create staff users
+    // Create staff users with proper password hashing
+    const hashedStaffPassword = await hashPassword('teacher123'); // Default password for demo
     for (const staffName of STAFF) {
       const email = staffName.toLowerCase().replace(/[^a-z]/g, '.') + '@demo.school.edu';
       const nameParts = staffName.split(' ');
@@ -287,12 +291,13 @@ async function main() {
           lastName: lastName,
           role: 'TEACHER',
           schoolId: school.id,
-          password: '$2a$10$dummy.hash.for.demo'
+          password: hashedStaffPassword,
+          emailVerified: true
         }
       });
     }
 
-    console.log('✅ Staff users created:', STAFF.length);
+    console.log('✅ Staff users created:', STAFF.length, '(password: teacher123)');
 
     // Create students
     for (const student of STUDENTS) {

@@ -29,17 +29,22 @@ model School {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  firstName String
-  lastName  String
-  role      UserRole @default(TEACHER)
-  schoolId  String
-  isActive  Boolean  @default(true)
-  lastLogin DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              UserRole  @default(TEACHER)
+  schoolId          String
+  isActive          Boolean   @default(true)
+  emailVerified     Boolean   @default(false)
+  passwordResetToken String?
+  passwordResetExpires DateTime?
+  lastLogin         DateTime?
+  loginAttempts     Int       @default(0)
+  lockoutUntil      DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Relations
   school            School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
