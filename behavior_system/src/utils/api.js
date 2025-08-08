@@ -1,13 +1,30 @@
 // API service for behavior management backend
-const API_BASE_URL = 'http://localhost:8000/api';
+const DEFAULT_API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 class ApiService {
+  constructor(baseUrl = DEFAULT_API_BASE_URL) {
+    this.baseUrl = baseUrl.replace(/\/$/, '');
+  }
+
+  getAuthToken() {
+    try {
+      return localStorage.getItem('authToken') || null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Helper method for making HTTP requests
   async makeRequest(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+    const base = options.baseUrl ? options.baseUrl.replace(/\/$/, '') : this.baseUrl;
+    const url = `${base}${endpoint}`;
+
+    const authToken = this.getAuthToken();
+
     const config = {
       headers: {
         'Content-Type': 'application/json',
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         ...options.headers,
       },
       ...options,
@@ -21,7 +38,9 @@ class ApiService {
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
       
-      return await response.json();
+      // Some endpoints may not have a body (204), handle gracefully
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
     } catch (error) {
       console.error(`API Error (${endpoint}):`, error);
       throw error;
@@ -109,35 +128,16 @@ class ApiService {
     });
   }
 
-  // Staff API (users with teacher role)
+  // Staff API (normalized to {id, name})
   async getStaff() {
-    try {
-      const staffResponse = await this.makeRequest('/staff');
-      
-      // Transform the API response to match frontend expectations
-      // Convert {firstName: "Ms. Jennifer", lastName: "Brown"} to "Ms. Jennifer Brown"
-      return staffResponse.map(staff => `${staff.firstName} ${staff.lastName}`);
-    } catch (error) {
-      console.error('Error fetching staff from API:', error);
-      
-      // Fallback to hardcoded list if API fails
-      return [
-        "Ms. Jennifer Brown",
-        "Mr. Michael Davis", 
-        "Mrs. Sarah Wilson",
-        "Dr. Robert Johnson",
-        "Ms. Lisa Anderson",
-        "Mr. David Thompson",
-        "Mrs. Emily White"
-      ];
-    }
+    const staffResponse = await this.makeRequest('/staff');
+    return (staffResponse || []).map(s => ({ id: s.id, name: s.name }));
   }
 
-  // Health check
+  // Health check (uses absolute override)
   async healthCheck() {
-    return await this.makeRequest('/health', { 
-      baseUrl: 'http://localhost:8000' // Override base URL for health check
-    });
+    const base = process.env.REACT_APP_API_HEALTH_URL || this.baseUrl.replace(/\/$/, '').replace(/\/api$/, '');
+    return await this.makeRequest('/health', { baseUrl: base });
   }
 }
 

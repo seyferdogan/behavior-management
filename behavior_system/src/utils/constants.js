@@ -76,11 +76,11 @@ export const ZONES = {
 };
 
 export const INITIAL_STUDENTS = [
-  { name: "Aaliyah Mohammed", grade: "Grade 7G" },
-  { name: "Aaron Thompson", grade: "Grade 8B" },
-  { name: "Abigail Foster", grade: "Grade 9-10G" },
-  { name: "Adam Rodriguez", grade: "Grade 9-10B" },
-  { name: "Aiden Clarke", grade: "Grade 7B" },
+  { id: 's1', name: "Aaliyah Mohammed", grade: "Grade 7G" },
+  { id: 's2', name: "Aaron Thompson", grade: "Grade 8B" },
+  { id: 's3', name: "Abigail Foster", grade: "Grade 9-10G" },
+  { id: 's4', name: "Adam Rodriguez", grade: "Grade 9-10B" },
+  { id: 's5', name: "Aiden Clarke", grade: "Grade 7B" },
   { name: "Alexandra Putin", grade: "Grade 9-10G" },
   { name: "Alice Cooper", grade: "Grade 8G" },
   { name: "Amanda Garcia", grade: "Grade 9-10G" },
@@ -172,26 +172,26 @@ export const INITIAL_STUDENTS = [
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 export const INITIAL_STAFF = [
-  { name: "Ms. Aaliyah Ahmed" },
-  { name: "Mr. Benjamin Clarke" }, 
-  { name: "Mrs. Catherine Davis" },
-  { name: "Dr. David Foster" },
-  { name: "Ms. Elena Rodriguez" },
-  { name: "Mr. Frank Thompson" },
-  { name: "Mrs. Grace Wilson" },
-  { name: "Ms. Hannah Martinez" },
-  { name: "Mr. Ian Kowalski" },
-  { name: "Mrs. Jennifer Brown" },
-  { name: "Ms. Katherine Lee" },
-  { name: "Mr. Lucas Anderson" },
-  { name: "Mrs. Maria Gonzalez" },
-  { name: "Ms. Nicole Johnson" },
-  { name: "Mr. Oliver Smith" },
-  { name: "Mrs. Patricia Taylor" },
-  { name: "Ms. Quinn Roberts" },
-  { name: "Mr. Robert Miller" },
-  { name: "Mrs. Samantha Garcia" },
-  { name: "Ms. Teresa White" }
+  { id: 't1', name: "Ms. Aaliyah Ahmed" },
+  { id: 't2', name: "Mr. Benjamin Clarke" }, 
+  { id: 't3', name: "Mrs. Catherine Davis" },
+  { id: 't4', name: "Dr. David Foster" },
+  { id: 't5', name: "Ms. Elena Rodriguez" },
+  { id: 't6', name: "Mr. Frank Thompson" },
+  { id: 't7', name: "Mrs. Grace Wilson" },
+  { id: 't8', name: "Ms. Hannah Martinez" },
+  { id: 't9', name: "Mr. Ian Kowalski" },
+  { id: 't10', name: "Mrs. Jennifer Brown" },
+  { id: 't11', name: "Ms. Katherine Lee" },
+  { id: 't12', name: "Mr. Lucas Anderson" },
+  { id: 't13', name: "Mrs. Maria Gonzalez" },
+  { id: 't14', name: "Ms. Nicole Johnson" },
+  { id: 't15', name: "Mr. Oliver Smith" },
+  { id: 't16', name: "Mrs. Patricia Taylor" },
+  { id: 't17', name: "Ms. Quinn Roberts" },
+  { id: 't18', name: "Mr. Robert Miller" },
+  { id: 't19', name: "Mrs. Samantha Garcia" },
+  { id: 't20', name: "Ms. Teresa White" }
 ].sort((a, b) => a.name.localeCompare(b.name));
 
 export const INITIAL_INCIDENTS = [

@@ -1,60 +1,43 @@
 const errorHandler = (err, req, res, next) => {
-  let error = { ...err };
-  error.message = err.message;
+  // Default error shape
+  let statusCode = err.statusCode || 500;
+  let message = err.message || 'Server Error';
 
-  // Log error for debugging
+  // Log full error server-side
   console.error('Error:', err);
-
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { message, statusCode: 404 };
-  }
-
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
-    error = { message, statusCode: 400 };
-  }
-
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = { message, statusCode: 400 };
-  }
 
   // JWT errors
   if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = { message, statusCode: 401 };
+    statusCode = 401;
+    message = 'Invalid token';
   }
 
   if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = { message, statusCode: 401 };
+    statusCode = 401;
+    message = 'Token expired';
   }
 
-  // Prisma errors
+  // Prisma known errors
   if (err.code === 'P2002') {
-    const message = 'Duplicate field value entered';
-    error = { message, statusCode: 400 };
+    statusCode = 400;
+    message = 'Duplicate field value entered';
   }
 
   if (err.code === 'P2025') {
-    const message = 'Record not found';
-    error = { message, statusCode: 404 };
+    statusCode = 404;
+    message = 'Record not found';
   }
 
-  // Joi validation errors
+  // Validation library errors (Joi/Zod style)
   if (err.isJoi) {
-    const message = err.details.map(detail => detail.message).join(', ');
-    error = { message, statusCode: 400 };
+    statusCode = 400;
+    message = err.details.map(detail => detail.message).join(', ');
   }
 
-  res.status(error.statusCode || 500).json({
+  res.status(statusCode).json({
     success: false,
-    error: error.message || 'Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    error: message,
+    ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
   });
 };
 

@@ -26,6 +26,9 @@ const {
 
 const app = express();
 
+// Trust proxy when behind reverse proxy (Nginx)
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -41,13 +44,14 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration - dynamic origins from environment
-const corsOrigins = [
+const corsOriginsRaw = [
   config.FRONTEND_URL,
   'http://localhost:3000',
   'http://localhost:3001', 
   'http://localhost:3002',
   ...config.ALLOWED_ORIGINS
 ].filter(Boolean);
+const corsOrigins = Array.from(new Set(corsOriginsRaw));
 
 app.use(cors({
   origin: corsOrigins,
@@ -55,7 +59,7 @@ app.use(cors({
 }));
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Request tracking middleware

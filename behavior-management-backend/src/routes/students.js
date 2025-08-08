@@ -1,8 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { getPrismaClient } = require('../utils/database');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 // GET /api/students - Get all students
 router.get('/', async (req, res) => {
@@ -21,8 +21,8 @@ router.get('/', async (req, res) => {
     // Search by name if provided
     if (search) {
       whereClause.OR = [
-        { firstName: { contains: search, mode: 'insensitive' } },
-        { lastName: { contains: search, mode: 'insensitive' } }
+        { firstName: { contains: search } },
+        { lastName: { contains: search } }
       ];
     }
 

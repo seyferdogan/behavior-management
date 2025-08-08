@@ -75,8 +75,8 @@ const TeacherView = () => {
                   <option value="">
                     {formGradeFilter ? 'Select student...' : 'Select grade first'}
                   </option>
-                  {filteredStudents.map((student, index) => (
-                    <option key={index} value={student.name}>
+                  {filteredStudents.map((student) => (
+                    <option key={student.id || student.name} value={student.name}>
                       {student.name}
                     </option>
                   ))}
@@ -140,8 +140,8 @@ const TeacherView = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select incident type...</option>
-                  {Object.entries(INCIDENT_POINTS).map(([type, points], index) => (
-                    <option key={index} value={type}>
+                  {Object.entries(INCIDENT_POINTS).map(([type]) => (
+                    <option key={type} value={type}>
                       {type}
                     </option>
                   ))}
@@ -204,8 +204,8 @@ const TeacherView = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Select reporting teacher...</option>
-                  {staff.map((teacher, index) => (
-                    <option key={index} value={teacher.name}>
+                  {staff.map((teacher) => (
+                    <option key={teacher.id || teacher.name} value={teacher.name}>
                       {teacher.name}
                     </option>
                   ))}

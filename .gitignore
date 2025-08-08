@@ -20,6 +20,16 @@ __pycache__/
 .env.test.local
 .env.production.local
 
+# SSL Certificates (do not commit private keys)
+certificates/**/*.key
+certificates/**/*.crt
+certificates/**/*.pem
+certificates/**/*.p12
+
+# Local Nginx/PM2 configs
+nginx-local.conf
+ecosystem-ssl.config.js
+
 # Database
 *.db
 *.sqlite

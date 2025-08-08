@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const { getPrismaClient } = require('../utils/database');
 
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 // GET /api/staff - Get all staff members
 router.get('/', async (req, res) => {
@@ -20,17 +20,24 @@ router.get('/', async (req, res) => {
         email: true,
         role: true
       },
-      orderBy: {
-        firstName: 'asc'
-      }
+      orderBy: [
+        { lastName: 'asc' },
+        { firstName: 'asc' }
+      ]
     });
 
-    res.json(staff);
+    const normalized = staff.map(u => ({
+      id: u.id,
+      name: `${u.firstName} ${u.lastName}`,
+      email: u.email,
+      role: u.role
+    }));
+
+    res.json(normalized);
   } catch (error) {
     console.error('Error fetching staff:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch staff', 
-      message: error.message 
+      error: 'Failed to fetch staff'
     });
   }
 });
@@ -57,12 +64,17 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Staff member not found' });
     }
 
-    res.json(staff);
+    res.json({
+      id: staff.id,
+      name: `${staff.firstName} ${staff.lastName}`,
+      email: staff.email,
+      role: staff.role,
+      createdAt: staff.createdAt
+    });
   } catch (error) {
     console.error('Error fetching staff member:', error);
     res.status(500).json({ 
-      error: 'Failed to fetch staff member', 
-      message: error.message 
+      error: 'Failed to fetch staff member'
     });
   }
 });

@@ -47,6 +47,8 @@ export const BehaviorProvider = ({ children }) => {
 
   // Form data states
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedStaffId, setSelectedStaffId] = useState('');
   const [newStudentName, setNewStudentName] = useState('');
   const [newStudentGrade, setNewStudentGrade] = useState('');
   const [newStaffName, setNewStaffName] = useState('');
@@ -85,19 +87,11 @@ export const BehaviorProvider = ({ children }) => {
         
         // Load staff
         setIsLoadingStaff(true);
-        const staffData = await apiService.getStaff();
+        const staffData = await apiService.getStaff(); // [{id,name}]
         setStaff(staffData);
         setIsLoadingStaff(false);
-        
-        console.log('✅ API Data loaded successfully:', {
-          students: studentsData.length,
-          incidents: incidentsData.length,
-          staff: staffData.length
-        });
-        
       } catch (error) {
-        console.error('❌ Error loading initial data:', error);
-        console.log('🔄 Using fallback mock data for demo purposes');
+        console.error('Error loading initial data:', error);
         setApiError(error.message);
         setIsLoadingStudents(false);
         setIsLoadingIncidents(false);
@@ -135,17 +129,24 @@ export const BehaviorProvider = ({ children }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // If selecting a student, also auto-populate the grade
-    if (name === 'studentName' && value) {
-      const selectedStudent = students.find(student => student.name === value);
-      if (selectedStudent) {
+    // If selecting a student, also auto-populate the grade and ID
+    if (name === 'studentName') {
+      const found = students.find(s => s.name === value);
+      setSelectedStudentId(found?.id || '');
+      if (found) {
         setFormData(prev => ({ 
           ...prev, 
           [name]: value,
-          grade: selectedStudent.grade 
+          grade: found.grade 
         }));
         return;
       }
+    }
+
+    // If selecting a staff member, capture the ID
+    if (name === 'staffMember') {
+      const found = staff.find(s => s.name === value);
+      setSelectedStaffId(found?.id || '');
     }
     
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -155,6 +156,8 @@ export const BehaviorProvider = ({ children }) => {
     try {
       const newIncidentData = {
         ...formData,
+        studentId: selectedStudentId || undefined,
+        reporterId: selectedStaffId || undefined,
         date: formData.date || new Date().toISOString().split('T')[0],
         time: formData.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
@@ -166,19 +169,17 @@ export const BehaviorProvider = ({ children }) => {
       setIncidents(prev => [newIncident, ...prev]);
       
       setFormData(INITIAL_FORM_DATA);
+      setSelectedStudentId('');
+      setSelectedStaffId('');
       setShowThankYou(true);
 
-      console.log('✅ Incident created successfully:', newIncident);
-
-      // Check for zone changes and send notifications
+      // Zone change notifications (demo)
       if (emailNotifications.enabled) {
         const prevZone = calculateStudentZone(newIncident.studentName).zone;
         const newZone = calculateStudentZone(newIncident.studentName).zone;
-        
         if (prevZone !== newZone) {
           const zoneChange = `${prevZone} to ${newZone}`;
           if (emailNotifications.notifyOnZoneChanges.includes(zoneChange)) {
-            // In demo mode, show alert instead of sending email
             if (emailNotifications.emailService === 'demo') {
               alert(`📧 ZONE CHANGE NOTIFICATION\n\n` +
                     `Student: ${newIncident.studentName}\n` +
@@ -191,10 +192,8 @@ export const BehaviorProvider = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('❌ Error creating incident:', error);
+      console.error('Error creating incident:', error);
       setApiError(error.message);
-      
-      // Show error to user
       alert(`Error creating incident: ${error.message}`);
     }
   };
@@ -202,6 +201,8 @@ export const BehaviorProvider = ({ children }) => {
   const handleClear = () => {
     setFormData(INITIAL_FORM_DATA);
     setFormGradeFilter('');
+    setSelectedStudentId('');
+    setSelectedStaffId('');
   };
 
   // Function to reload data from API
@@ -229,10 +230,8 @@ export const BehaviorProvider = ({ children }) => {
         setStaff(staffData);
         setIsLoadingStaff(false);
       }
-      
-      console.log(`✅ ${type} data reloaded successfully`);
     } catch (error) {
-      console.error(`❌ Error reloading ${type} data:`, error);
+      console.error(`Error reloading ${type} data:`, error);
       setApiError(error.message);
     }
   };
@@ -278,6 +277,10 @@ export const BehaviorProvider = ({ children }) => {
     // Form data
     formData,
     setFormData,
+    selectedStudentId,
+    setSelectedStudentId,
+    selectedStaffId,
+    setSelectedStaffId,
     newStudentName,
     setNewStudentName,
     newStudentGrade,

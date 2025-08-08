@@ -1,8 +1,8 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const { getPrismaClient } = require('../utils/database');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const prisma = getPrismaClient();
 
 // Point values for different incident types (matching frontend constants)
 const INCIDENT_POINTS = {
@@ -26,6 +26,14 @@ const INCIDENT_POINTS = {
   "Other": 1
 };
 
+function normalizeSeverity(input) {
+  if (!input) return 'MINOR';
+  const sev = String(input).toUpperCase();
+  if (sev === 'SEVERE') return 'SEVERE';
+  if (sev === 'MAJOR' || sev === 'MODERATE') return 'MAJOR';
+  return 'MINOR';
+}
+
 // GET /api/incidents - Get all incidents
 router.get('/', async (req, res) => {
   try {
@@ -48,7 +56,7 @@ router.get('/', async (req, res) => {
 
     // Filter by severity
     if (severity && severity !== 'All') {
-      whereClause.severity = severity.toUpperCase();
+      whereClause.severity = normalizeSeverity(severity);
     }
 
     // Date range filter
@@ -62,14 +70,17 @@ router.get('/', async (req, res) => {
       }
     }
 
-    // Search filter
+    // Search filter (SQLite-safe)
     if (search) {
       whereClause.OR = [
-        { incidentType: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-        { location: { contains: search, mode: 'insensitive' } }
+        { incidentType: { contains: search } },
+        { description: { contains: search } },
+        { location: { contains: search } }
       ];
     }
+
+    const safeTake = Math.min(parseInt(limit) || 100, 200);
+    const safeSkip = Math.max(parseInt(offset) || 0, 0);
 
     const incidents = await prisma.incident.findMany({
       where: whereClause,
@@ -91,8 +102,8 @@ router.get('/', async (req, res) => {
         }
       },
       orderBy: { dateOccurred: 'desc' },
-      take: parseInt(limit),
-      skip: parseInt(offset)
+      take: safeTake,
+      skip: safeSkip
     });
 
     // Transform data to match frontend expectations
@@ -108,6 +119,7 @@ router.get('/', async (req, res) => {
       severity: incident.severity.charAt(0) + incident.severity.slice(1).toLowerCase(), // Minor, Major, Severe
       description: incident.description,
       staffMember: `${incident.reporter.firstName} ${incident.reporter.lastName}`,
+      staffId: incident.reporter.id,
       actionTaken: incident.actionTaken,
       pointsAssigned: incident.pointsAssigned,
       createdAt: incident.createdAt,
@@ -178,6 +190,8 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { 
+      studentId,
+      reporterId,
       studentName,
       grade,
       date,
@@ -191,43 +205,39 @@ router.post('/', async (req, res) => {
     } = req.body;
 
     // Validation
-    if (!studentName || !incidentType || !staffMember) {
-      return res.status(400).json({ 
-        error: 'Student name, incident type, and staff member are required' 
-      });
+    if (!incidentType) {
+      return res.status(400).json({ error: 'Incident type is required' });
     }
 
-    // Find student by name
-    const nameParts = studentName.split(' ');
-    const firstName = nameParts.slice(0, -1).join(' ');
-    const lastName = nameParts[nameParts.length - 1];
-    
-    const student = await prisma.student.findFirst({
-      where: {
-        AND: [
-          { firstName: { contains: firstName } },
-          { lastName: { contains: lastName } }
-        ]
-      }
-    });
+    // Resolve student
+    let student;
+    if (studentId) {
+      student = await prisma.student.findUnique({ where: { id: studentId } });
+    } else if (studentName) {
+      const nameParts = studentName.split(' ');
+      const firstName = nameParts.slice(0, -1).join(' ');
+      const lastName = nameParts[nameParts.length - 1];
+      student = await prisma.student.findFirst({
+        where: { AND: [ { firstName: { contains: firstName } }, { lastName: { contains: lastName } } ] }
+      });
+    }
 
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Find staff member by name
-    const staffParts = staffMember.split(' ');
-    const staffFirstName = staffParts.slice(0, -1).join(' ');
-    const staffLastName = staffParts[staffParts.length - 1];
-    
-    const reporter = await prisma.user.findFirst({
-      where: {
-        AND: [
-          { firstName: { contains: staffFirstName } },
-          { lastName: { contains: staffLastName } }
-        ]
-      }
-    });
+    // Resolve reporter
+    let reporter;
+    if (reporterId) {
+      reporter = await prisma.user.findUnique({ where: { id: reporterId } });
+    } else if (staffMember) {
+      const staffParts = staffMember.split(' ');
+      const staffFirstName = staffParts.slice(0, -1).join(' ');
+      const staffLastName = staffParts[staffParts.length - 1];
+      reporter = await prisma.user.findFirst({
+        where: { AND: [ { firstName: { contains: staffFirstName } }, { lastName: { contains: staffLastName } } ] }
+      });
+    }
 
     if (!reporter) {
       return res.status(404).json({ error: 'Staff member not found' });
@@ -239,29 +249,24 @@ router.post('/', async (req, res) => {
     // Create date with time
     const incidentDate = new Date(date || new Date().toISOString().split('T')[0]);
     if (time) {
-      const [timePart, meridiem] = time.split(' ');
-      const [hours, minutes] = timePart.split(':');
-      let hour24 = parseInt(hours);
-      
-      if (meridiem === 'PM' && hour24 !== 12) {
-        hour24 += 12;
-      } else if (meridiem === 'AM' && hour24 === 12) {
-        hour24 = 0;
+      // Accepts both 24h (HH:mm) and 12h (HH:mm AM/PM)
+      let hour24, minutes;
+      if (/AM|PM/i.test(time)) {
+        const [timePart, meridiem] = time.split(' ');
+        const [hours, mins] = timePart.split(':');
+        hour24 = parseInt(hours, 10);
+        minutes = parseInt(mins, 10);
+        if (/PM/i.test(meridiem) && hour24 !== 12) hour24 += 12;
+        if (/AM/i.test(meridiem) && hour24 === 12) hour24 = 0;
+      } else {
+        const [hours, mins] = time.split(':');
+        hour24 = parseInt(hours, 10);
+        minutes = parseInt(mins, 10);
       }
-      
-      incidentDate.setHours(hour24, parseInt(minutes), 0, 0);
+      incidentDate.setHours(hour24, minutes, 0, 0);
     }
 
-    // Map severity to enum values
-    let severityEnum = 'MINOR';
-    if (severity) {
-      const sev = severity.toUpperCase();
-      if (sev === 'MAJOR' || sev === 'MODERATE') {
-        severityEnum = 'MAJOR';
-      } else if (sev === 'SEVERE') {
-        severityEnum = 'SEVERE';
-      }
-    }
+    const severityEnum = normalizeSeverity(severity);
 
     const newIncident = await prisma.incident.create({
       data: {
@@ -278,19 +283,8 @@ router.post('/', async (req, res) => {
         schoolId: student.schoolId
       },
       include: {
-        student: {
-          select: {
-            firstName: true,
-            lastName: true,
-            grade: true
-          }
-        },
-        reporter: {
-          select: {
-            firstName: true,
-            lastName: true
-          }
-        }
+        student: { select: { firstName: true, lastName: true, grade: true, id: true } },
+        reporter: { select: { firstName: true, lastName: true, id: true } }
       }
     });
 
@@ -298,6 +292,7 @@ router.post('/', async (req, res) => {
     const formattedIncident = {
       id: newIncident.id,
       studentName: `${newIncident.student.firstName} ${newIncident.student.lastName}`,
+      studentId: newIncident.student.id,
       grade: newIncident.student.grade,
       date: newIncident.dateOccurred.toISOString().split('T')[0],
       time: newIncident.timeOccurred,
@@ -306,19 +301,15 @@ router.post('/', async (req, res) => {
       severity: newIncident.severity.charAt(0) + newIncident.severity.slice(1).toLowerCase(),
       description: newIncident.description,
       staffMember: `${newIncident.reporter.firstName} ${newIncident.reporter.lastName}`,
+      staffId: newIncident.reporter.id,
       actionTaken: newIncident.actionTaken,
       pointsAssigned: newIncident.pointsAssigned
     };
 
     res.status(201).json(formattedIncident);
   } catch (error) {
-    console.error('🚨 DETAILED ERROR creating incident:', error);
-    console.error('🚨 Stack trace:', error.stack);
-    res.status(500).json({ 
-      error: 'Failed to create incident', 
-      message: error.message,
-      details: error.stack
-    });
+    console.error('Error creating incident:', error.message);
+    res.status(500).json({ error: 'Failed to create incident' });
   }
 });
 
@@ -334,18 +325,7 @@ router.put('/:id', async (req, res) => {
       actionTaken
     } = req.body;
 
-    // Map severity to enum values
-    let severityEnum = severity;
-    if (severity) {
-      const sev = severity.toUpperCase();
-      if (sev === 'MAJOR' || sev === 'MODERATE') {
-        severityEnum = 'MAJOR';
-      } else if (sev === 'SEVERE') {
-        severityEnum = 'SEVERE';
-      } else {
-        severityEnum = 'MINOR';
-      }
-    }
+    const severityEnum = normalizeSeverity(severity);
 
     // Calculate points if incident type changed
     const pointsAssigned = incidentType ? (INCIDENT_POINTS[incidentType] || 0) : undefined;
